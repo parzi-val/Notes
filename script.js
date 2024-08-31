@@ -84,36 +84,27 @@ closeBtn.addEventListener('click', () => {
     overlay.style.display = 'none';
 });
 
-// Capture screenshot based on settings
-captureBtn.addEventListener('click', () => {
-    html2canvas(editor).then(canvas => {
-        canvas.toBlob(blob => {
-            switch (captureBehavior) {
-                case 'copy':
-                    const clipboardItem = new ClipboardItem({
-                        'image/png': blob
-                    });
-                    navigator.clipboard.write([clipboardItem]).then(() => {
-                        alert('Screenshot copied to clipboard!');
-                    }).catch(err => {
-                        console.error('Failed to copy to clipboard:', err);
-                    });
-                    break;
-                case 'savePNG':
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = titleInput.value ? titleInput.value + '.png' : 'screenshot.png';
-                    link.click();
-                    break;
-                case 'saveText':
-                    const text = editor.innerText;
-                    const textBlob = new Blob([text], { type: 'text/plain' });
-                    const textLink = document.createElement('a');
-                    textLink.href = URL.createObjectURL(textBlob);
-                    textLink.download = titleInput.value ? titleInput.value + '.txt' : 'notes.txt';
-                    textLink.click();
-                    break;
+document.getElementById('capture-btn').addEventListener('click', () => {
+    const behavior = behaviorSelect.value;
+    html2canvas(editor, {
+        onrendered: function (canvas) {
+            if (behavior === 'copy') {
+                canvas.toBlob(blob => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    navigator.clipboard.write([item]);
+                });
+            } else if (behavior === 'savePNG') {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'notes.png';
+                link.click();
+            } else if (behavior === 'saveText') {
+                const blob = new Blob([editor.innerText], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'notes.txt';
+                link.click();
             }
-        });
+        }
     });
 });
